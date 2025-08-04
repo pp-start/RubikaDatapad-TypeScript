@@ -1,35 +1,78 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useContext } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { UserContext } from './components/UserContext.tsx';
+import { Common /* , Error, Login, Main, Admin, Schedules, Offline */ } from './main.tsx';
+import CacheBuster from 'react-cache-buster';
+import Loading from './components/Loading.tsx';
+import packageInfo from '../package.json';
 
-function App(): React.JSX.Element {
-  const [count, setCount] = useState(0)
+export default function App() {
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const {user, isOnline} = useContext(UserContext);
+
+    useEffect(() => {
+
+        document.title = 'Badania ruchu';
+
+    }, []);
+
+    const isProduction: boolean = import.meta.env.MODE === 'production';
+
+    return (
+        <CacheBuster
+            currentVersion={packageInfo.version}
+            isEnabled={isProduction} 
+            isVerboseMode={false} 
+            loadingComponent={<Loading />} 
+            metaFileDirectory={'.'} 
+        >
+            <>
+                {user && isOnline &&
+                    <>
+                        {user.role === 'none' && (
+                            <BrowserRouter>
+                                <Routes>
+                                    <Route path='/' element={<Common />}>
+                                        <Route index element={<Login />} />
+                                        <Route path='*' element={<Navigate to='/' />} />
+                                    </Route>
+                                </Routes>
+                            </BrowserRouter>
+                        )}
+                        {user.role === 'user' && (
+                            <BrowserRouter>
+                                <Routes>
+                                    <Route path='/' element={<Common />}>
+                                        <Route index element={<Main />} />
+                                        <Route path='/rozklady' element={<Schedules />} />
+                                        <Route path='*' element={<Error />} />
+                                    </Route>
+                                </Routes>
+                            </BrowserRouter>
+                        )}
+                        {user.role === 'admin' && (
+                            <BrowserRouter>
+                                <Routes>
+                                    <Route path='/' element={<Common />}>
+                                        <Route index element={<Admin />} />
+                                        <Route path='*' element={<Error />} />
+                                    </Route>
+                                </Routes>
+                            </BrowserRouter>
+                        )}
+                    </>
+                }
+                {!isOnline && (
+                    <BrowserRouter>
+                        <Routes>
+                            <Route path='/' element={<Common />}>
+                                <Route index element={<Offline />} />
+                                <Route path='*' element={<Navigate to='/' />} />
+                            </Route>
+                        </Routes>
+                    </BrowserRouter>
+                )}
+            </>
+        </CacheBuster>
+    );
 }
-
-export default App

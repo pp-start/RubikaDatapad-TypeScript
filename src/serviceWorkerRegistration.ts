@@ -13,7 +13,7 @@ type SWConfig = {
     onSuccess?: (registration: ServiceWorkerRegistration) => void;
 };
 
-export function register(config?: SWConfig){
+export function register(config?: SWConfig): void {
 
     if(import.meta.env.MODE === 'production' && 'serviceWorker' in navigator){
 
@@ -49,11 +49,12 @@ export function register(config?: SWConfig){
             }
 
         });
+
     }
 
 }
 
-function registerValidSW(swUrl: string, config?: SWConfig){
+function registerValidSW(swUrl: string, config?: SWConfig): void {
 
     navigator.serviceWorker.register(swUrl).then((registration) => {
 
@@ -62,7 +63,9 @@ function registerValidSW(swUrl: string, config?: SWConfig){
             const installingWorker: ServiceWorker | null = registration.installing;
 
             if(installingWorker == null){
+
                 return;
+
             }
 
             installingWorker.onstatechange = () => {
@@ -108,7 +111,7 @@ function registerValidSW(swUrl: string, config?: SWConfig){
 
 }
 
-function checkValidServiceWorker(swUrl: string, config? : SWConfig){
+function checkValidServiceWorker(swUrl: string, config? : SWConfig): void {
 
     fetch(swUrl, { headers: { 'Service-Worker': 'script' }, }).then((response) => {
 
@@ -121,6 +124,7 @@ function checkValidServiceWorker(swUrl: string, config? : SWConfig){
                 registration.unregister().then(() => {
 
                     window.location.reload();
+
                 });
 
             });
@@ -139,7 +143,7 @@ function checkValidServiceWorker(swUrl: string, config? : SWConfig){
 
 }
 
-export function unregister(){
+export function unregister(): void {
 
     if('serviceWorker' in navigator){
 
