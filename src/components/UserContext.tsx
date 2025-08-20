@@ -4,16 +4,6 @@ import { db } from "./Db";
 
 import type { FormData } from "./Login";
 
-type User = {
-    username: string;
-    personal_id: string;
-    role: string;
-    first_name?: string;
-    surname?: string;
-    hour_rate?: number;
-    total_work_time?: number;
-}
-
 type UserContextType = {
     user: User | null;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
@@ -29,23 +19,20 @@ type EncryptedPayload = {
     date: string;
 };
 
-export type Data = {
-    username?: string;
-    personal_id?: string;
-    role?: string;
-    first_name?: string;
-    surname?: string;
-    hour_rate?: number;
-    total_work_time?: number;
+export type Data = Omit<Partial<User>, 'hour_rate' | 'total_work_time'> & {
+    hour_rate?: number | string | null;
+    total_work_time?: number | string | null;
     message?: string;
     token?: string;
     code?: string;
-}
+};
 
+/*
 type UpdatedData = Omit<Data, 'hour_rate' | 'total_work_time'> & {
     hour_rate?: string;
     total_work_time?: string;
 };
+*/
 
 export const UserContext: React.Context<UserContextType | undefined> = createContext<UserContextType | undefined>(undefined);
 
@@ -61,7 +48,7 @@ export const isLocalhost: boolean = Boolean(
 
 export const Axios: AxiosInstance = axios.create({
 
-    baseURL: isLocalhost ? 'Rubika/RubikaDatapad/public/php/' : 'php/',
+    baseURL: isLocalhost ? '/TypeScript/RubikaDatapad/public/php/' : 'php/',
 
 });
 
@@ -127,27 +114,9 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     }, []);
 
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-
-
-
-
     // Szyfrowanie
 
-    const encrypt = async (data: UpdatedData): Promise<UpdatedData> => {
+    const encrypt = async (data: Data): Promise<Data> => {
 
         const encrypted_username: string = data.username ? await encryptString(data.username) : "";
 
@@ -163,9 +132,9 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
         const encrypted_surname: string = data.surname ? await encryptString(data.surname) : ""; 
 
-        const encrypted_hour_rate: string = data.hour_rate ? await encryptString(data.hour_rate) : ""; 
+        const encrypted_hour_rate: string = data.hour_rate ? await encryptString(String(data.hour_rate)) : ""; 
 
-        const encrypted_total_work_time: string = data.total_work_time ? await encryptString(data.total_work_time) : "";
+        const encrypted_total_work_time: string = data.total_work_time ? await encryptString(String(data.total_work_time)) : "";
 
         return { username: encrypted_username, personal_id: encrypted_personal_id, role: encrypted_role, token: encrypted_token, code: encrypted_code, first_name: encrypted_first_name, surname: encrypted_surname, hour_rate: encrypted_hour_rate, total_work_time: encrypted_total_work_time };
 
@@ -177,9 +146,9 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
         const key: CryptoKey = await generateKey(date);
 
-        const iv: Uint8Array = crypto.getRandomValues(new Uint8Array(12));
+        const iv: Uint8Array<ArrayBuffer> = crypto.getRandomValues(new Uint8Array(12));
 
-        const encodedText: Uint8Array = await textToArrayBuffer(text);
+        const encodedText: Uint8Array<ArrayBuffer> = new TextEncoder().encode(text);
 
         const encryptedBuffer: ArrayBuffer = await crypto.subtle.encrypt(
             { name: "AES-GCM", iv },
@@ -210,14 +179,6 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
             false,
             ["encrypt", "decrypt"]
         );
-
-    }
-
-    async function textToArrayBuffer(text: string): Promise<Uint8Array> {
-
-        const encoder: TextEncoder = new TextEncoder();
-
-        return encoder.encode(text);
 
     }
 
@@ -275,7 +236,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     }, []);
 
-    const decrypt = useCallback(async (data: UpdatedData): Promise<UpdatedData> => {
+    const decrypt = useCallback(async (data: Data): Promise<Data> => {
 
         const decrypted_username: string = data.username ? await decryptString(data.username) : "";
 
@@ -289,21 +250,21 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
         const decrypted_first_name: string = data.first_name ? await decryptString(data.first_name) : ""; 
 
-        const decrypted_surname: string = data.surname ? await decryptString(data.surname) : ""; 
+        const decrypted_surname: string = data.surname ? await decryptString(data.surname) : "";
 
-        const decrypted_hour_rate: string = data.hour_rate ? await decryptString(data.hour_rate) : ""; 
+        const decrypted_hour_rate: string = data.hour_rate ? await decryptString(data.hour_rate.toString()) : "";
 
-        const decrypted_total_work_time: string = data.total_work_time ? await decryptString(data.total_work_time) : ""; 
+        const decrypted_total_work_time: string = data.total_work_time ? await decryptString(data.total_work_time.toString()) : ""; 
        
-        return { username: decrypted_username, personal_id: decrypted_personal_id, role: decrypted_role, token: decrypted_token, code: decrypted_code, first_name: decrypted_first_name, surname: decrypted_surname, hour_rate: decrypted_hour_rate, total_work_time: decrypted_total_work_time };
+        return { username: decrypted_username, personal_id: decrypted_personal_id, role: decrypted_role, token: decrypted_token, code: decrypted_code, first_name: decrypted_first_name, surname: decrypted_surname, hour_rate: Number(decrypted_hour_rate), total_work_time: Number(decrypted_total_work_time) };
 
     }, [decryptString]);
 
-    function base64ToArrayBuffer(base64: string): ArrayBufferLike {
+    function base64ToArrayBuffer(base64: string): ArrayBuffer {
 
-        const binaryString: string = atob(base64);
+        const binaryString = atob(base64);
 
-        const bytes: Uint8Array = new Uint8Array(binaryString.length);
+        const bytes = new Uint8Array(binaryString.length);
 
         for(let i = 0; i < binaryString.length; i++){
 
@@ -312,27 +273,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
         }
 
         return bytes.buffer;
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
 
     // Logowanie - wysyłanie formularza
 
@@ -350,22 +291,12 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
                 const code: string = user_code + "-" + window.navigator.hardwareConcurrency + "-" + window.navigator.maxTouchPoints;
 
-                const updated_data: UpdatedData = {
+                const updated_data: Data = {
                     ...data,
-                    hour_rate: data.hour_rate ? data.hour_rate.toString() : "",
-                    total_work_time: data.total_work_time ? data.total_work_time.toString() : "",
                     code: code
                 }
 
-                if(userDB.length === 0){
-
-                    createUser(updated_data);
-
-                } else {
-
-                    updateUser(updated_data);
-
-                }
+                handleUser(updated_data);
 
                 return data;
 
@@ -379,27 +310,23 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
         }
 
-    } 
+    }
 
     // Wpisywanie użytkownika do lokalnej bazy danych
 
-    const createUser = async (data: UpdatedData): Promise<void> => {
+    const handleUser = async(data: Data): Promise<void> => {
 
-        const encrypted: UpdatedData = await encrypt(data);
+        const encrypted: Data = await encrypt(data);
 
-        await db.user.put({index: 1, username: encrypted.username, personal_id: encrypted.personal_id, token: encrypted.token, code: encrypted.code, first_name: encrypted.first_name, surname: encrypted.surname, hour_rate: encrypted.hour_rate, total_work_time: encrypted.total_work_time});
+        if(userDB.length === 0){
 
-        setUserDB([{...encrypted}]);
+            await db.user.put({index: 1, ...encrypted, first_name: encrypted.first_name ?? "", surname: encrypted.surname ?? "", hour_rate: String(encrypted.hour_rate ?? ''), total_work_time: String(encrypted.total_work_time ?? '')});
 
-    }
+        } else {
 
-    // Aktualizacja wpisu użytkownika do lokalnej bazy danych
+            await db.user.update(1, {...encrypted, first_name: encrypted.first_name ?? "", surname: encrypted.surname ?? "", hour_rate: String(encrypted.hour_rate ?? ''), total_work_time: String(encrypted.total_work_time ?? '')});
 
-    const updateUser = async (data: UpdatedData): Promise<void> => {
-
-        const encrypted = await encrypt(data);
-
-        await db.user.update(1, {username: encrypted.username, personal_id: encrypted.personal_id, token: encrypted.token, code: encrypted.code, first_name: encrypted.first_name, surname: encrypted.surname, hour_rate: encrypted.hour_rate, total_work_time: encrypted.total_work_time});
+        }
 
         setUserDB([{...encrypted}]);
 
@@ -407,7 +334,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     // Pobieranie użytkownika z lokalnej bazy danych
 
-    const [userDB, setUserDB] = useState<UpdatedData[]>([]);
+    const [userDB, setUserDB] = useState<Data[]>([]);
 
     useEffect(() => {
 
@@ -433,7 +360,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
         if(userDB.length > 0){
 
-            const data: UpdatedData = userDB[0];
+            const data: Data = userDB[0];
 
             Axios.options('auth/getUser.php', { timeout: 1500 }).then(function(){
 
@@ -449,73 +376,55 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
         }
 
-        const logOnline = async (data: UpdatedData) => {
+        const logOnline = async (data: Data): Promise<void> => {
 
-            const decrypted_data = await decrypt(data);
+            const decrypted_data: Data = await decrypt(data);
 
-            let stored_code = localStorage.getItem("code");
+            let stored_code: string | null = localStorage.getItem("code");
 
             const current_code = stored_code + "-" + window.navigator.hardwareConcurrency + "-" + window.navigator.maxTouchPoints;
 
+            const empty_user: User = { username: '', personal_id: '', role: 'none' };
+
             if(decrypted_data.code === current_code){
 
-                const loginToken = decrypted_data.token;
+                const loginToken: string | undefined = decrypted_data.token;
 
                 if(loginToken){
 
                     Axios.defaults.headers.common['Authorization'] = 'Bearer ' + loginToken;
 
-                    const { data } = await Axios.get('auth/getUser.php');
+                    const { data }: { data: unknown } = await Axios.get('auth/getUser.php');
 
-                    if(data.success && data.user){
+                    if (typeof data === 'object' && data !== null && 'success' in data && 'user' in data){
 
-                        let userData = data.user[0];
+                        const userData = data.user as User[];
 
-                        setUser({username: userData.username, personal_id: userData.personal_id, role: userData.role, first_name: userData.first_name, surname: userData.surname, hour_rate: userData.hour_rate, total_work_time: userData.total_work_time});
+                        // ZWERYFIKOWAĆ POPRAWNOŚĆ DANYCH
 
-                        return;
+                        setUser(userData[0]);
 
                     } else {
 
-                        setUser({username: '', personal_id: '', role: 'none'});
+                        setUser(empty_user);
 
                     }
 
                 } else {
 
-                    setUser({username: '', personal_id: '', role: 'none'});
+                    setUser(empty_user);
 
                 }
 
             } else {
 
-                setUser({username: '', personal_id: '', role: 'none'});
+                setUser(empty_user);
 
             }
 
         }
 
     },[decrypt, userDB]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // Sprawdzenie połączenia z internetem
 

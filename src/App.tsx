@@ -1,14 +1,14 @@
-import { useEffect, useContext } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { UserContext } from './components/UserContext.tsx';
-import { Common /* , Error, Login, Main, Admin, Schedules, Offline */ } from './main.tsx';
+import { useUserContext } from './components/UserContext';
+import { Common, Error, Login, Main, Offline /* , Admin, Schedules */ } from './main';
 import CacheBuster from 'react-cache-buster';
-import Loading from './components/Loading.tsx';
+import Loading from './components/Loading';
 import packageInfo from '../package.json';
 
 export default function App() {
 
-    const {user, isOnline} = useContext(UserContext);
+    const { user, isOnline } = useUserContext();
 
     useEffect(() => {
 
@@ -24,7 +24,8 @@ export default function App() {
             isEnabled={isProduction} 
             isVerboseMode={false} 
             loadingComponent={<Loading />} 
-            metaFileDirectory={'.'} 
+            metaFileDirectory={'.'}
+            onCacheClear={() => window.location.reload()}
         >
             <>
                 {user && isOnline &&
@@ -44,13 +45,13 @@ export default function App() {
                                 <Routes>
                                     <Route path='/' element={<Common />}>
                                         <Route index element={<Main />} />
-                                        <Route path='/rozklady' element={<Schedules />} />
+                                        {/*<Route path='/rozklady' element={<Schedules />} />*/}
                                         <Route path='*' element={<Error />} />
                                     </Route>
                                 </Routes>
                             </BrowserRouter>
                         )}
-                        {user.role === 'admin' && (
+                        {/*user.role === 'admin' && (
                             <BrowserRouter>
                                 <Routes>
                                     <Route path='/' element={<Common />}>
@@ -59,7 +60,7 @@ export default function App() {
                                     </Route>
                                 </Routes>
                             </BrowserRouter>
-                        )}
+                        )*/}
                     </>
                 }
                 {!isOnline && (

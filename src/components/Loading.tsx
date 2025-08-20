@@ -1,4 +1,4 @@
-import Gear from './svg/Gear.tsx';
+import Gear from './svg/Gear';
 
 export default function Loading(): React.JSX.Element {
 

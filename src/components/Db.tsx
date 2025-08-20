@@ -15,11 +15,16 @@ interface User {
 
 interface Latest {
     index?: number;
+    job?: Job;
+    train?: MergedTrain | null; // typ ???
+    station?: string | null; // typ ???
+    measurements?: MeasurementSave | null; // typ ???
     // other fields
 }
 
 interface Station {
     index?: number;
+    station?: string;
     // other fields
 }
 
