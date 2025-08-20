@@ -1,12 +1,5 @@
 import { useState, useEffect } from "react";
-import { useUserContext } from './UserContext';
-
-import type { Data } from './UserContext';
-
-export type FormData = {
-    username: string;
-    password: string;
-}
+import { useUserContext } from './Context';
 
 export default function Login(): React.JSX.Element {
 
@@ -26,7 +19,7 @@ export default function Login(): React.JSX.Element {
 
     }, []);
 
-    const [formData, setFormData] = useState<FormData>(
+    const [formFields, setFormFields] = useState<FormFields>(
         {
             username: '',
             password: ''
@@ -37,9 +30,9 @@ export default function Login(): React.JSX.Element {
 
         const {name, value} = event.target;
 
-        setFormData(prevFormData => {
+        setFormFields(prevFormFields => {
             return {
-                ...prevFormData,
+                ...prevFormFields,
                 [name]: value
             }
         });
@@ -64,13 +57,13 @@ export default function Login(): React.JSX.Element {
 
         //event.preventDefault();
 
-        if(!formData.username || !formData.password){
+        if(!formFields.username || !formFields.password){
 
             setMessage('Proszę wypełnić oba pola');
 
         } else {
 
-            let button = document.getElementById('login-button');
+            const button = document.getElementById('login-button');
 
             if(button){
 
@@ -78,7 +71,7 @@ export default function Login(): React.JSX.Element {
 
             }
 
-            const data: Data = await loginUser(formData);
+            const data: Data = await loginUser(formFields);
 
             if(data.token){
 
@@ -86,7 +79,7 @@ export default function Login(): React.JSX.Element {
 
             } else {
 
-                let message = data.message ? data.message : 'Nieznany błąd. Spróbuj później.';
+                const message = data.message ? data.message : 'Nieznany błąd. Spróbuj później.';
 
                 setMessage(message);
 
@@ -122,7 +115,7 @@ export default function Login(): React.JSX.Element {
                                             onChange={formChange}
                                             onKeyDown={handleKeyDown}
                                             name="username"
-                                            value={formData.username}
+                                            value={formFields.username}
                                             placeholder="Nazwa użytkownika"
                                         />
                                     </div>
@@ -134,7 +127,7 @@ export default function Login(): React.JSX.Element {
                                             onChange={formChange}
                                             onKeyDown={handleKeyDown}
                                             name="password"
-                                            value={formData.password}
+                                            value={formFields.password}
                                             placeholder="Hasło"
                                         />
                                     </div>

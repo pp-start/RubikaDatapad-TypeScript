@@ -38,7 +38,7 @@ const Carousel = ({ children }: CarouselProps) => {
 
         setActiveIndex(newIndex);
 
-    }, []);
+    }, [childrenCount]);
 
     useEffect(() => {
 
@@ -48,7 +48,7 @@ const Carousel = ({ children }: CarouselProps) => {
 
         }
 
-    }, [childrenCount, updateIndex]);
+    }, [activeIndex, childrenCount, updateIndex]);
 
     const handlers: SwipeableHandlers = useSwipeable({
         onSwipedLeft: () => updateIndex(activeIndex + 1),

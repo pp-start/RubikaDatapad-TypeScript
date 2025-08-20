@@ -1,5 +1,24 @@
 declare module '@fontsource/roboto';
 
+// User context i login
+
+declare type FormFields = {
+    username: string;
+    password: string;
+}
+
+declare type UserContextType = {
+    user: User | null;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
+    loginUser: (formFields: FormFields) => Promise<Data>;
+    logout: () => void;
+    isOnline: boolean;
+    isLocalhost: boolean;
+};
+
+
+
+
 // Użytkownik
 
 declare type User = {

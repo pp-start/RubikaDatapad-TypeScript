@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useUserContext, Axios } from './UserContext';
+import { useUserContext, Axios } from './Context';
 import { useIdleTimer } from 'react-idle-timer'
 import Gear from './svg/Gear';
 import TrainIcon from './svg/TrainIcon';
@@ -400,13 +400,13 @@ export default function Main(): React.JSX.Element {
 
             console.log(plus_value)
 
-            let new_total_value: number = latestTotalWorkTime.current + plus_value;
+            const new_total_value: number = latestTotalWorkTime.current + plus_value;
 
             setTotalWorkTime(new_total_value);
 
             if(latestActiveJob.current && latestJobWorkTime.current !== undefined){
 
-                let new_job_value: number = latestJobWorkTime.current + plus_value;
+                const new_job_value: number = latestJobWorkTime.current + plus_value;
 
                 setJobWorkTime(new_job_value);
 
@@ -415,6 +415,26 @@ export default function Main(): React.JSX.Element {
         }
 
     }, []);
+
+    /*
+
+    useEffect(() => {
+
+        const h: number = setInterval(() => {
+
+            if(latestActiveStatus.current && latestSiteActiveStatus.current && latestDifference.current === 0){
+
+                updateWorkTimes('standard', 5);
+
+            }
+
+        }, 5000);
+
+        return () => { clearInterval(h) }
+
+    }, [updateWorkTimes]);
+
+    */
 
     useEffect(() => {
 
@@ -436,15 +456,15 @@ export default function Main(): React.JSX.Element {
 
     function formatTimeString(seconds: number): string {
 
-        let hours: number = Math.floor(seconds / 3600);
+        const hours: number = Math.floor(seconds / 3600);
 
-        let minutes: number = Math.floor((seconds % 3600) / 60);
+        const minutes: number = Math.floor((seconds % 3600) / 60);
 
-        let hoursString: string = hours < 100 ? ('0' + hours).slice(-2) : ('00' + hours).slice(-3);
+        const hoursString: string = hours < 100 ? ('0' + hours).slice(-2) : ('00' + hours).slice(-3);
 
-        let minutesString: string = ('0' + minutes).slice(-2);
+        const minutesString: string = ('0' + minutes).slice(-2);
 
-        let timeString: string = hoursString + ':' + minutesString;
+        const timeString: string = hoursString + ':' + minutesString;
 
         return timeString;
 
@@ -466,19 +486,19 @@ export default function Main(): React.JSX.Element {
 
                 setSiteActiveDate(null);
 
-                let previousDate: Date | null = latestSiteActiveDate.current;
+                const previousDate: Date | null = latestSiteActiveDate.current;
 
-                let currentDate: Date = new Date();
+                const currentDate: Date = new Date();
 
-                let previousDifference: number = latestDifference.current;
+                const previousDifference: number = latestDifference.current;
 
                 if(previousDate){
 
-                    let time1: number = previousDate.getTime();
+                    const time1: number = previousDate.getTime();
 
-                    let time2: number = currentDate.getTime();
+                    const time2: number = currentDate.getTime();
 
-                    let difference: number = (time2 - time1) / 1000;
+                    const difference: number = (time2 - time1) / 1000;
 
                     const seconds: number = Math.round(difference);
 
@@ -620,13 +640,11 @@ export default function Main(): React.JSX.Element {
 
     const showTimeUpdateError = useCallback(() => {
 
-        let error_count: number = latestTimeUpdateErrorCount.current;
+        const error_count: number = latestTimeUpdateErrorCount.current;
 
         if(error_count > 1){
 
-            const current_modal = {...modal, show: true, error: true};
-
-            setModal(current_modal);
+            setModal(prev => ({...prev, show: true, error: true}));
 
             setModalErrorMessage('Wystąpił problem z aktualizacją czasu pracy. Odśwież stronę, a jeśli problem będzie się powtarzał skontaktuj się z koordynatorem projektu.')
 
@@ -652,9 +670,9 @@ export default function Main(): React.JSX.Element {
 
                 const active_job: Job | null = latestActiveJob.current;
 
-                let personal_id: string | undefined = latestUserId.current;
+                const personal_id: string | undefined = latestUserId.current;
 
-                let total: number | undefined = latestTotalWorkTime.current;
+                const total: number | undefined = latestTotalWorkTime.current;
 
                 let job: number | undefined;
 
@@ -700,7 +718,7 @@ export default function Main(): React.JSX.Element {
 
                 }
 
-                let request_type = 'update time';
+                const request_type = 'update time';
 
                 console.log('Akt BD - total ' + total + ' job ' + job)
 
@@ -716,9 +734,9 @@ export default function Main(): React.JSX.Element {
 
                     } else if(typeof response.data === 'object'){
 
-                        let total: number | null = response.data.total ? response.data.total : null;
+                        const total: number | null = response.data.total ? response.data.total : null;
 
-                        let job: number | null = response.data.job ? response.data.job : null;
+                        const job: number | null = response.data.job ? response.data.job : null;
 
                         if(total){
 
@@ -752,7 +770,7 @@ export default function Main(): React.JSX.Element {
 
         return () => { clearInterval(h) }
 
-    }, []);
+    }, [showTimeUpdateError]);
 
     useEffect(() => {
 
@@ -818,11 +836,11 @@ export default function Main(): React.JSX.Element {
 
     const getData = useCallback(() => {
 
-        let count: number = latestDataLoadCount.current;
+        const count: number = latestDataLoadCount.current;
 
-        let personal_id: string | undefined = latestUserId.current;
+        const personal_id: string | undefined = latestUserId.current;
 
-        let request_type: string = 'get data';
+        const request_type: string = 'get data';
 
         setSearching(true);
 
@@ -1160,19 +1178,19 @@ export default function Main(): React.JSX.Element {
 
             if(latestActiveJob.current){
 
-                let request_type: string = 'get data';
+                const request_type: string = 'get data';
 
                 const current: Job = latestActiveJob.current;
 
-                let job_number: number = current.job_number;
+                const job_number: number = current.job_number;
 
-                let personal_id: string = current.personal_id;
+                const personal_id: string = current.personal_id;
 
-                let station_id: string | null = current.station_id;
+                const station_id: string | null = current.station_id;
 
-                let train_id: string | null = current.train_id;
+                const train_id: string | null = current.train_id;
 
-                let recording_date: string = current.recording_date
+                const recording_date: string = current.recording_date
 
                 Axios.post('classes/measurements.php', { personal_id, job_number, data, recording_date, station_id, train_id, request_type }, { timeout: 10000 }).then(function(response){
 
@@ -1483,11 +1501,11 @@ export default function Main(): React.JSX.Element {
 
     function copyText(id: string): void {
 
-        let ele: HTMLElement | null = document.getElementById(id);
+        const ele: HTMLElement | null = document.getElementById(id);
 
         if(ele){
 
-            let text: string = ele.innerText;
+            const text: string = ele.innerText;
 
             navigator.clipboard.writeText(text).then(() => {
 
@@ -1575,13 +1593,13 @@ export default function Main(): React.JSX.Element {
 
                                 for(let i=station_index; i>=0 ;i--){
 
-                                    let current_station: string = train[i].station_id;
+                                    const current_station: string = train[i].station_id;
 
                                     const found: Delay | undefined = delay.find(item => item.station_id === current_station);
 
                                     if(found){
 
-                                        let difference = station_index - train[i].stop_number;
+                                        const difference = station_index - train[i].stop_number;
 
                                         delay_text = 'opóźniony ' + found.delay + ' min. ' + difference + ' st. wcześniej';
 
@@ -1854,13 +1872,13 @@ export default function Main(): React.JSX.Element {
 
             if(current_train_measurement){
 
-                let prev_entered_sum: string = String(current_train_measurement.entered_sum);
+                const prev_entered_sum: string = String(current_train_measurement.entered_sum);
 
-                let prev_exited_sum: string = String(current_train_measurement.exited_sum);
+                const prev_exited_sum: string = String(current_train_measurement.exited_sum);
 
-                let prev_time_arrival: string | null = current_train_measurement.arrival_hour;
+                const prev_time_arrival: string | null = current_train_measurement.arrival_hour;
 
-                let prev_time_departure: string | null = current_train_measurement.departure_hour;
+                const prev_time_departure: string | null = current_train_measurement.departure_hour;
 
                 // Jeśli pomiar różni się od aktualnych wartości
 
@@ -1932,6 +1950,53 @@ export default function Main(): React.JSX.Element {
 
     }
 
+    // Przywracanie ostatniego pomiaru
+
+    const restoreMeasurements = useCallback((data: Measurement): void => {
+
+        const oldMeasurementFormData: MeasurementFormData = {};
+
+        if(data.entered_1 !== null && data.entered_1 !== undefined) oldMeasurementFormData.entered_1 = data.entered_1;
+
+        if(data.entered_2 !== null && data.entered_2 !== undefined) oldMeasurementFormData.entered_2 = data.entered_2;
+
+        if(data.entered_3 !== null && data.entered_3 !== undefined) oldMeasurementFormData.entered_3 = data.entered_3;
+
+        if(data.entered_4 !== null && data.entered_4 !== undefined) oldMeasurementFormData.entered_4 = data.entered_4;
+
+        if(data.entered_5 !== null && data.entered_5 !== undefined) oldMeasurementFormData.entered_5 = data.entered_5;
+
+        if(data.entered_6 !== null && data.entered_6 !== undefined) oldMeasurementFormData.entered_6 = data.entered_6;
+
+        if(data.exited_1 !== null && data.exited_1 !== undefined) oldMeasurementFormData.exited_1 = data.exited_1;
+
+        if(data.exited_2 !== null && data.exited_2 !== undefined) oldMeasurementFormData.exited_2 = data.exited_2;
+
+        if(data.exited_3 !== null && data.exited_3 !== undefined) oldMeasurementFormData.exited_3 = data.exited_3;
+
+        if(data.exited_4 !== null && data.exited_4 !== undefined) oldMeasurementFormData.exited_4 = data.exited_4;
+
+        if(data.exited_5 !== null && data.exited_5 !== undefined) oldMeasurementFormData.exited_5 = data.exited_5;
+
+        if(data.exited_6 !== null && data.exited_6 !== undefined) oldMeasurementFormData.exited_6 = data.exited_6;
+
+        setMeasurementFormData(oldMeasurementFormData);
+
+        const old_time: Time = {
+            arrival: data.arrival_hour ? data.arrival_hour : "",
+            departure: data.departure_hour ? data.departure_hour : ""
+        };
+
+        setTime(old_time);
+
+        if(data.accuracy) setAccuracy(data.accuracy);
+
+        if(data.comments) setAdditionalComment(data.comments);
+
+    }, []);
+
+    // Aktywowanie pociągu lub stacji
+
     const activateSelectedTrain = useCallback((train: MergedTrain): void => {
 
         db.latest.update(1, {train: null, station: null, measurements: null});
@@ -1962,7 +2027,7 @@ export default function Main(): React.JSX.Element {
 
         }
 
-    }, []);
+    }, [restoreMeasurements]);
 
     const [activeStation, setActiveStation] = useState<string | null>(null);
 
@@ -2006,13 +2071,13 @@ export default function Main(): React.JSX.Element {
 
                 const old_measurement: Measurement = old_station.measurement[0];
 
-                let prev_entered_sum: string = String(old_measurement.entered_sum);
+                const prev_entered_sum: string = String(old_measurement.entered_sum);
 
-                let prev_exited_sum: string = String(old_measurement.exited_sum);
+                const prev_exited_sum: string = String(old_measurement.exited_sum);
 
-                let prev_time_arrival: string | null = old_measurement.arrival_hour;
+                const prev_time_arrival: string | null = old_measurement.arrival_hour;
 
-                let prev_time_departure: string | null = old_measurement.departure_hour;
+                const prev_time_departure: string | null = old_measurement.departure_hour;
 
                 if(measurementFormSummary.entered_sum !== prev_entered_sum || measurementFormSummary.exited_sum !== prev_exited_sum || time.arrival !== prev_time_arrival || time.departure !== prev_time_departure){
 
@@ -2066,7 +2131,7 @@ export default function Main(): React.JSX.Element {
 
         const current_active_job: Job = activeJob!;
 
-        let recording_date: string = current_active_job.recording_date;
+        const recording_date: string = current_active_job.recording_date;
 
         const cameras_list: Camera[] = cameras.filter(item => item.station_id === station_id && item.recording_date === recording_date);
 
@@ -2092,52 +2157,7 @@ export default function Main(): React.JSX.Element {
 
         }
 
-    }, [activeJob, cameras, ftp, mergedTrains]);
-
-    // Przywracanie ostatniego pomiaru
-
-    function restoreMeasurements(data: Measurement): void {
-
-        const oldMeasurementFormData: MeasurementFormData = {};
-
-        if(data.entered_1 !== null && data.entered_1 !== undefined) oldMeasurementFormData.entered_1 = data.entered_1;
-
-        if(data.entered_2 !== null && data.entered_2 !== undefined) oldMeasurementFormData.entered_2 = data.entered_2;
-
-        if(data.entered_3 !== null && data.entered_3 !== undefined) oldMeasurementFormData.entered_3 = data.entered_3;
-
-        if(data.entered_4 !== null && data.entered_4 !== undefined) oldMeasurementFormData.entered_4 = data.entered_4;
-
-        if(data.entered_5 !== null && data.entered_5 !== undefined) oldMeasurementFormData.entered_5 = data.entered_5;
-
-        if(data.entered_6 !== null && data.entered_6 !== undefined) oldMeasurementFormData.entered_6 = data.entered_6;
-
-        if(data.exited_1 !== null && data.exited_1 !== undefined) oldMeasurementFormData.exited_1 = data.exited_1;
-
-        if(data.exited_2 !== null && data.exited_2 !== undefined) oldMeasurementFormData.exited_2 = data.exited_2;
-
-        if(data.exited_3 !== null && data.exited_3 !== undefined) oldMeasurementFormData.exited_3 = data.exited_3;
-
-        if(data.exited_4 !== null && data.exited_4 !== undefined) oldMeasurementFormData.exited_4 = data.exited_4;
-
-        if(data.exited_5 !== null && data.exited_5 !== undefined) oldMeasurementFormData.exited_5 = data.exited_5;
-
-        if(data.exited_6 !== null && data.exited_6 !== undefined) oldMeasurementFormData.exited_6 = data.exited_6;
-
-        setMeasurementFormData(oldMeasurementFormData);
-
-        const old_time: Time = {
-            arrival: data.arrival_hour ? data.arrival_hour : "",
-            departure: data.departure_hour ? data.departure_hour : ""
-        };
-
-        setTime(old_time);
-
-        if(data.accuracy) setAccuracy(data.accuracy);
-
-        if(data.comments) setAdditionalComment(data.comments);
-
-    }
+    }, [activeJob, cameras, ftp, mergedTrains, restoreMeasurements]);
 
     const [measurementFormData, setMeasurementFormData] = useState<MeasurementFormData>({});
 
@@ -2168,19 +2188,19 @@ export default function Main(): React.JSX.Element {
 
             function calculatePassengersSum(type: PassengerType): "" | number {
 
-                let field_1: number = Number(measurementFormData[`${type}_1`] ? measurementFormData[`${type}_1`] : 0);
+                const field_1: number = Number(measurementFormData[`${type}_1`] ? measurementFormData[`${type}_1`] : 0);
 
-                let field_2: number = Number(measurementFormData[`${type}_2`] ? measurementFormData[`${type}_2`] : 0);
+                const field_2: number = Number(measurementFormData[`${type}_2`] ? measurementFormData[`${type}_2`] : 0);
 
-                let field_3: number = Number(measurementFormData[`${type}_3`] ? measurementFormData[`${type}_3`] : 0);
+                const field_3: number = Number(measurementFormData[`${type}_3`] ? measurementFormData[`${type}_3`] : 0);
 
-                let field_4: number = Number(measurementFormData[`${type}_4`] ? measurementFormData[`${type}_4`] : 0);
+                const field_4: number = Number(measurementFormData[`${type}_4`] ? measurementFormData[`${type}_4`] : 0);
 
-                let field_5: number = Number(measurementFormData[`${type}_5`] ? measurementFormData[`${type}_5`] : 0);
+                const field_5: number = Number(measurementFormData[`${type}_5`] ? measurementFormData[`${type}_5`] : 0);
 
-                let field_6: number = Number(measurementFormData[`${type}_6`] ? measurementFormData[`${type}_6`] : 0);
+                const field_6: number = Number(measurementFormData[`${type}_6`] ? measurementFormData[`${type}_6`] : 0);
 
-                let sum: number = field_1 + field_2 + field_3 + field_4 + field_5 + field_6;
+                const sum: number = field_1 + field_2 + field_3 + field_4 + field_5 + field_6;
 
                 if(measurementFormData[`${type}_1`] === undefined && measurementFormData[`${type}_2`] === undefined && measurementFormData[`${type}_3`] === undefined && measurementFormData[`${type}_4`] === undefined && measurementFormData[`${type}_5`] === undefined && measurementFormData[`${type}_6`] === undefined){
 
@@ -2293,15 +2313,15 @@ export default function Main(): React.JSX.Element {
 
             // Wyodrębnianie godzin i minut
 
-            let arr: string[] = current.split(":");
+            const arr: string[] = current.split(":");
 
-            let hours_raw: string = arr[0];
+            const hours_raw: string = arr[0];
 
-            let minutes_raw: string = arr[1];
+            const minutes_raw: string = arr[1];
 
-            let hours: number = parseInt(hours_raw);
+            const hours: number = parseInt(hours_raw);
 
-            let minutes: number = parseInt(minutes_raw);
+            const minutes: number = parseInt(minutes_raw);
 
             if(isNaN(hours) || isNaN(minutes)){
 
@@ -2326,17 +2346,17 @@ export default function Main(): React.JSX.Element {
 
                     if(hours === 23){
 
-                        let new_minutes: string = minutes < 10 ? "0" + minutes : minutes.toString();
+                        const new_minutes: string = minutes < 10 ? "0" + minutes : minutes.toString();
 
                         new_value = "00:" + new_minutes;
 
                     } else {
 
-                        let new_hour_number: number = hours + 1;
+                        const new_hour_number: number = hours + 1;
 
-                        let new_hour: string = new_hour_number < 10 ? "0" + new_hour_number : new_hour_number.toString();
+                        const new_hour: string = new_hour_number < 10 ? "0" + new_hour_number : new_hour_number.toString();
 
-                        let new_minutes: string = minutes < 10 ? "0" + minutes : minutes.toString();
+                        const new_minutes: string = minutes < 10 ? "0" + minutes : minutes.toString();
 
                         new_value = new_hour + ":" + new_minutes;
 
@@ -2350,17 +2370,17 @@ export default function Main(): React.JSX.Element {
 
                     if(hours === 0){
 
-                        let new_minutes: string = minutes < 10 ? "0" + minutes : minutes.toString();
+                        const new_minutes: string = minutes < 10 ? "0" + minutes : minutes.toString();
 
                         new_value = "23:" + new_minutes;
 
                     } else {
 
-                        let new_hour_number: number = hours - 1;
+                        const new_hour_number: number = hours - 1;
 
-                        let new_hour: string = new_hour_number < 10 ? "0" + new_hour_number : new_hour_number.toString();
+                        const new_hour: string = new_hour_number < 10 ? "0" + new_hour_number : new_hour_number.toString();
 
-                        let new_minutes: string = minutes < 10 ? "0" + minutes : minutes.toString();
+                        const new_minutes: string = minutes < 10 ? "0" + minutes : minutes.toString();
 
                         new_value = new_hour + ":" + new_minutes;
 
@@ -2390,17 +2410,17 @@ export default function Main(): React.JSX.Element {
 
                         }
 
-                        let new_hour: string = new_hour_number < 10 ? "0" + new_hour_number : new_hour_number.toString();
+                        const new_hour: string = new_hour_number < 10 ? "0" + new_hour_number : new_hour_number.toString();
 
                         new_value = new_hour + ":00";
 
                     } else {
 
-                        let new_hour: string = hours < 10 ? "0" + hours : hours.toString();
+                        const new_hour: string = hours < 10 ? "0" + hours : hours.toString();
 
-                        let new_minutes_number: number = minutes + 1;
+                        const new_minutes_number: number = minutes + 1;
 
-                        let new_minutes: string = new_minutes_number < 10 ? "0" + new_minutes_number : new_minutes_number.toString();
+                        const new_minutes: string = new_minutes_number < 10 ? "0" + new_minutes_number : new_minutes_number.toString();
 
                         new_value = new_hour + ":" + new_minutes;
 
@@ -2426,17 +2446,17 @@ export default function Main(): React.JSX.Element {
 
                         }
 
-                        let new_hour: string = new_hour_number < 10 ? "0" + new_hour_number : new_hour_number.toString();
+                        const new_hour: string = new_hour_number < 10 ? "0" + new_hour_number : new_hour_number.toString();
 
                         new_value = new_hour + ":59";
 
                     } else {
 
-                        let new_hours: string = hours < 10 ? "0" + hours : hours.toString();
+                        const new_hours: string = hours < 10 ? "0" + hours : hours.toString();
 
-                        let new_minutes_number: number = minutes - 1;
+                        const new_minutes_number: number = minutes - 1;
 
-                        let new_minutes: string = new_minutes_number < 10 ? "0" + new_minutes_number : new_minutes_number.toString();
+                        const new_minutes: string = new_minutes_number < 10 ? "0" + new_minutes_number : new_minutes_number.toString();
 
                         new_value = new_hours + ":" + new_minutes;
 
@@ -2641,11 +2661,11 @@ export default function Main(): React.JSX.Element {
 
     const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>): void => {
 
-        let item = event.clipboardData.items[0];
+        const item = event.clipboardData.items[0];
 
         if(item.type.indexOf("image") === 0){
 
-            let file: File | null = item.getAsFile();
+            const file: File | null = item.getAsFile();
 
             if(file){
 
@@ -2691,9 +2711,9 @@ export default function Main(): React.JSX.Element {
 
         event.preventDefault();
 
-        let imageTypes: string[] = ['image/png', 'image/gif', 'image/bmp', 'image/jpeg', 'image/jpg'];
+        const imageTypes: string[] = ['image/png', 'image/gif', 'image/bmp', 'image/jpeg', 'image/jpg'];
 
-        let raw_files: FileList = event.dataTransfer.files;
+        const raw_files: FileList = event.dataTransfer.files;
 
         const files: File[] = Array.from(raw_files);
 
@@ -2743,7 +2763,7 @@ export default function Main(): React.JSX.Element {
 
         const uploaded: File[] = [];
 
-        let imageTypes = ['image/png', 'image/gif', 'image/bmp', 'image/jpeg', 'image/jpg'];
+        const imageTypes = ['image/png', 'image/gif', 'image/bmp', 'image/jpeg', 'image/jpg'];
 
         files.forEach(file => {
 
@@ -2861,7 +2881,7 @@ export default function Main(): React.JSX.Element {
 
     function handleComment(event: React.ChangeEvent<HTMLTextAreaElement>): void {
 
-        let value = event.target.value;
+        const value = event.target.value;
 
         setAdditionalComment(value);
 
@@ -2925,7 +2945,7 @@ export default function Main(): React.JSX.Element {
 
         // Przesyłanie danych
 
-        let button: HTMLElement | null = document.getElementById('measurement-save-button');
+        const button: HTMLElement | null = document.getElementById('measurement-save-button');
 
         button?.setAttribute("disabled", "disabled");
 
@@ -2938,13 +2958,13 @@ export default function Main(): React.JSX.Element {
             ...(additionalComment ? { comment: additionalComment } : {})
         };
 
-        let job_number: number = current_job.job_number;
+        const job_number: number = current_job.job_number;
 
-        let personal_id: string = current_job.personal_id;
+        const personal_id: string = current_job.personal_id;
 
-        let recording_date: string = current_job.recording_date;
+        const recording_date: string = current_job.recording_date;
 
-        let request_type: string = 'put measurements';
+        const request_type: string = 'put measurements';
 
         let station_id: string;
 
@@ -3171,7 +3191,7 @@ export default function Main(): React.JSX.Element {
 
                         });
 
-                        updated.photos = [ ...(updated.photos ?? []), ...outputArray ],
+                        updated.photos = [ ...(updated.photos ?? []), ...outputArray ];
 
                         setMergedTrains([updated]);
 
@@ -3179,11 +3199,11 @@ export default function Main(): React.JSX.Element {
         
                 }
 
-                let list = document.querySelectorAll<HTMLElement>('.currently-measured-train');
+                const list = document.querySelectorAll<HTMLElement>('.currently-measured-train');
 
                 if(list.length > 0){
 
-                    let element: HTMLElement = list[0];
+                    const element: HTMLElement = list[0];
 
                     element.scrollIntoView();
 
@@ -3309,9 +3329,9 @@ export default function Main(): React.JSX.Element {
 
             const photoSlides: PhotoSlide[] = photos.map(photo => {
 
-                let train_id: string = photo.train_id;
+                const train_id: string = photo.train_id;
 
-                let station_id: string = photo.station_id;
+                const station_id: string = photo.station_id;
 
                 const train_match: TrainNumber | undefined = trainNumbers.find(u => u.train_id === train_id);
 
@@ -3438,7 +3458,7 @@ export default function Main(): React.JSX.Element {
 
                     if(latest_job){
 
-                        let job_number: number = latest_job.job_number;
+                        const job_number: number = latest_job.job_number;
 
                         if(updatedJobs.some(job => job.job_number === job_number)){
 
@@ -3536,7 +3556,7 @@ export default function Main(): React.JSX.Element {
 
         const {name, value} = event.target;
 
-        let new_value: number = Number(value);
+        const new_value: number = Number(value);
 
         let new_calculated: string;
 
@@ -3609,15 +3629,15 @@ export default function Main(): React.JSX.Element {
 
         }
 
-        let job_number = customTime.job_number;
+        const job_number = customTime.job_number;
 
-        let hours: string = customTime.reported_hours;
+        const hours: string = customTime.reported_hours;
 
-        let minutes: string = customTime.reported_minutes;
+        const minutes: string = customTime.reported_minutes;
 
-        let personal_id: string = user.personal_id;
+        const personal_id: string = user.personal_id;
 
-        let request_type: string = 'report time';
+        const request_type: string = 'report time';
 
         Axios.post('classes/measurements.php', { personal_id, job_number, hours, minutes, request_type }, { timeout: 10000 }).then(function(response){
 
@@ -3631,7 +3651,7 @@ export default function Main(): React.JSX.Element {
                     reported_minutes: ''
                 });
 
-                let reported_time: string = response.data.reported_time
+                const reported_time: string = response.data.reported_time
 
                 const updated: UpdatedJob[] = filteredJobs.map(job => {
 

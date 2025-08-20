@@ -1,17 +1,7 @@
-import { createContext, useState, useEffect, useCallback, useContext, type ReactNode } from 'react';
-import axios, { type AxiosInstance } from 'axios';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import axios from 'axios';
+import { Axios, UserContext, isLocalhost } from './Context';
 import { db } from "./Db";
-
-import type { FormData } from "./Login";
-
-type UserContextType = {
-    user: User | null;
-    setUser: React.Dispatch<React.SetStateAction<User | null>>;
-    loginUser: (formData: FormData) => Promise<Data>;
-    logout: () => void;
-    isOnline: boolean;
-    isLocalhost: boolean;
-};
 
 type EncryptedPayload = {
     iv: string;
@@ -19,68 +9,9 @@ type EncryptedPayload = {
     date: string;
 };
 
-export type Data = Omit<Partial<User>, 'hour_rate' | 'total_work_time'> & {
-    hour_rate?: number | string | null;
-    total_work_time?: number | string | null;
-    message?: string;
-    token?: string;
-    code?: string;
-};
-
-/*
-type UpdatedData = Omit<Data, 'hour_rate' | 'total_work_time'> & {
-    hour_rate?: string;
-    total_work_time?: string;
-};
-*/
-
-export const UserContext: React.Context<UserContextType | undefined> = createContext<UserContextType | undefined>(undefined);
-
-export const isLocalhost: boolean = Boolean(
-
-    window.location.hostname === 'localhost' || window.location.hostname === '[::1]' ||
-
-    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/) ||
-
-    window.location.hostname.match(/^192(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
-
-);
-
-export const Axios: AxiosInstance = axios.create({
-
-    baseURL: isLocalhost ? '/TypeScript/RubikaDatapad/public/php/' : 'php/',
-
-});
-
-export function useUserContext(): UserContextType {
-
-    const context: UserContextType | undefined = useContext(UserContext);
-
-    if(!context){
-
-        throw new Error('useUserContext must be used within a UserContext.Provider');
-
-    }
-
-    return context;
-
-}
-
 export const UserContextProvider = ( { children } : { children: ReactNode } ) => {
 
     const [user, setUser] = useState<User | null>(null);
-
-    useEffect(() => {
-
-        let code: string | null = localStorage.getItem("code");
-
-        if(!code){
-
-            generateCode();
-
-        }
-
-    }, []);
 
     const generateCode = useCallback((): string => {
 
@@ -94,13 +25,13 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
             if(i <= 3){
 
-                let random: number = Math.floor(Math.random() * letters.length);
+                const random: number = Math.floor(Math.random() * letters.length);
 
                 code = code + letters.charAt(random);
 
             } else {
 
-                let random: number = Math.floor(Math.random() * number.length);
+                const random: number = Math.floor(Math.random() * number.length);
 
                 code = code + number.charAt(random);
 
@@ -113,6 +44,18 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
         return code;
 
     }, []);
+
+    useEffect(() => {
+
+        const code: string | null = localStorage.getItem("code");
+
+        if(!code){
+
+            generateCode();
+
+        }
+
+    }, [generateCode]);
 
     // Szyfrowanie
 
@@ -227,9 +170,9 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
             return (
                 typeof obj === "object" &&
                 obj !== null &&
-                typeof (obj as any).iv === "string" &&
-                typeof (obj as any).data === "string" &&
-                typeof (obj as any).date === "string"
+                typeof (obj as Record<string, unknown>).iv === "string" &&
+                typeof (obj as Record<string, unknown>).data === "string" &&
+                typeof (obj as Record<string, unknown>).date === "string"
             );
 
         }
@@ -277,17 +220,17 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     // Logowanie - wysyłanie formularza
 
-    const loginUser = async (formData: FormData): Promise<Data> => {
+    const loginUser = async (formFields: FormFields): Promise<Data> => {
 
         try {
 
-            const { data } : { data: Data } = await Axios.post('classes/login.php', { formData });
+            const { data } : { data: Data } = await Axios.post('classes/login.php', { formFields });
 
             if(data.token){
 
-                let retrieved_code: string | null = localStorage.getItem("code");
+                const retrieved_code: string | null = localStorage.getItem("code");
 
-                let user_code: string = retrieved_code ? retrieved_code : generateCode();
+                const user_code: string = retrieved_code ? retrieved_code : generateCode();
 
                 const code: string = user_code + "-" + window.navigator.hardwareConcurrency + "-" + window.navigator.maxTouchPoints;
 
@@ -305,6 +248,8 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
             return { message: data.message };
 
         } catch(err) {
+
+            console.warn(err);
 
             return { message: 'Błąd serwera!' };
 
@@ -380,7 +325,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
             const decrypted_data: Data = await decrypt(data);
 
-            let stored_code: string | null = localStorage.getItem("code");
+            const stored_code: string | null = localStorage.getItem("code");
 
             const current_code = stored_code + "-" + window.navigator.hardwareConcurrency + "-" + window.navigator.maxTouchPoints;
 
