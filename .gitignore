@@ -1,3 +1,6 @@
+public/php/vendor/
+public/php/classes/uploads/
+
 # Logs
 logs
 *.log

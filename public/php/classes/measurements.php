@@ -108,7 +108,7 @@ class Measurements{
 
         // Zwracanie błędu jeśli nowy czas jest większy o ponad 15 minut(za duży przeskok) 
 
-        $total_time_check = $prev_total_time + 920;
+        $total_time_check = $prev_total_time + 930;
 
         if($total > $total_time_check){
 

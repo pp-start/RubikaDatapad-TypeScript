@@ -14,8 +14,6 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 
 export default function Main(): React.JSX.Element {
 
-    type UpdateWorkTimesType = 'standard' | 'update';
-
     type Camera = {
         camera_number: string;
         station_id: string;
@@ -221,7 +219,7 @@ export default function Main(): React.JSX.Element {
 
     useEffect(() => {
 
-        if(user && user.role === 'user' && user.total_work_time){
+        if(user && user.role === 'user' && user.total_work_time && !latestTotalWorkTime.current){
 
             setTotalWorkTime(user.total_work_time);
 
@@ -320,133 +318,150 @@ export default function Main(): React.JSX.Element {
 
     });
 
-    useEffect(() => {
+    const updateWorkTimes = useCallback((plus_value: number): void => {
 
-        function handleVisibilityChange(): void {
+        let new_job_value: number = 0;
 
-            if(document.hidden){
-
-              setSiteActiveStatus(false);
-
-            } else {
-
-              setSiteActiveStatus(true);
-
-            }
-
-        }
-
-        function handleFocus(): void {
-
-            console.log('focus')
-
-            setSiteActiveStatus(true);
-
-        }
-
-        function handleBlur(): void {
-
-            console.log('blur')
-
-            setSiteActiveStatus(false);
-
-        }
-
-        handleVisibilityChange();
-
-        window.addEventListener("focus", handleFocus);
-
-        window.addEventListener("blur", handleBlur);
-
-        document.addEventListener("visibilitychange", handleVisibilityChange, false);
-
-        return () => {
-
-            window.removeEventListener("focus", handleFocus);
-
-            window.removeEventListener("blur", handleBlur);
-
-        };
-        
-    }, []);
-
-    // Logowanie czasu pracy
-
-    const updateWorkTimes = useCallback((type: UpdateWorkTimesType, time: number) => {
+        let new_total_value: number = 0;
 
         if(latestTotalWorkTime.current){
 
-            let plus_value: number;
+            new_total_value = latestTotalWorkTime.current + plus_value;
 
-            if(type === 'standard'){
+        }
 
-                plus_value = time;
+        if(latestActiveJob.current && latestJobWorkTime.current){
 
-            } else {
+            new_job_value = latestJobWorkTime.current + plus_value;
 
-                if(time > 900){
+        }
 
-                    plus_value = 900;
+        if((latestActiveStatus.current && latestSiteActiveStatus.current && plus_value === 1) || plus_value > 1){
 
-                } else {
-
-                    plus_value = time;
-
-                }
-
-            }
-
-            console.log(type)
-
-            console.log(plus_value)
-
-            const new_total_value: number = latestTotalWorkTime.current + plus_value;
-
-            setTotalWorkTime(new_total_value);
-
-            if(latestActiveJob.current && latestJobWorkTime.current !== undefined){
-
-                const new_job_value: number = latestJobWorkTime.current + plus_value;
+            if(new_job_value){
 
                 setJobWorkTime(new_job_value);
 
             }
 
+            setTotalWorkTime(new_total_value);
+
+            console.log(new Date().toLocaleTimeString() + " total " + new_total_value +  " job " + new_job_value + " plus_value " + plus_value)
+
         }
 
     }, []);
 
-    /*
+    useEffect(() => {
+
+        let reactivationInProgress = false;
+
+        updateActivity();
+
+        function updateActivity(){
+
+            const active = document.hasFocus() && !document.hidden;
+
+            if(!active){
+
+                deactivateSite();
+
+            } else {
+
+                reactivateSite();
+
+            }
+        }
+
+        document.addEventListener("visibilitychange", updateActivity);
+
+        window.addEventListener("focus", updateActivity);
+
+        window.addEventListener("blur", updateActivity);
+
+        function deactivateSite(){
+
+            if(latestSiteActiveStatus.current){
+
+                console.log(new Date().toLocaleTimeString() + ' deactivation')
+
+                setSiteActiveDate(Date.now());
+
+                setSiteActiveStatus(false);
+
+            }
+
+        }
+
+        function reactivateSite(){
+
+            if(reactivationInProgress || latestSiteActiveStatus.current){
+                return;
+            }
+
+            reactivationInProgress = true;
+
+            console.log(new Date().toLocaleTimeString() + ' reactivation')
+
+            let difference = calculateTimeDifference();
+
+            difference = difference > 900 ? 900 : difference;
+
+            updateWorkTimes(difference);
+
+            setSiteActiveDate(null);
+
+            setSiteActiveStatus(true);
+
+            setTimeout(() => { reactivationInProgress = false; }, 100);
+
+        }
+
+        function calculateTimeDifference(): number {
+
+            if(latestSiteActiveDate.current){
+
+                const last_active: number = latestSiteActiveDate.current;
+
+                const current_time: number = Date.now();
+
+                console.log(new Date().toLocaleTimeString() + ' difference calculation')
+
+                console.log(last_active)
+
+                console.log(current_time)
+
+                const difference: number = Math.round((current_time - last_active)/1000);
+
+                return difference;
+
+            } else {
+
+                return 0;
+
+            }
+
+        }
+
+        return () => {
+
+            document.removeEventListener("visibilitychange", updateActivity);
+
+            window.removeEventListener("focus", updateActivity);
+
+            window.removeEventListener("blur", updateActivity);
+
+        };
+        
+    }, [updateWorkTimes]);   
 
     useEffect(() => {
 
         const h: number = setInterval(() => {
 
-            if(latestActiveStatus.current && latestSiteActiveStatus.current && latestDifference.current === 0){
+            updateWorkTimes(1);
 
-                updateWorkTimes('standard', 5);
-
-            }
-
-        }, 5000);
-
-        return () => { clearInterval(h) }
-
-    }, [updateWorkTimes]);
-
-    */
-
-    useEffect(() => {
-
-        const h: number = setInterval(() => {
-
-            if(latestActiveStatus.current && latestSiteActiveStatus.current && latestDifference.current === 0){
-
-                updateWorkTimes('standard', 5);
-
-            }
-
-        }, 5000);
+        }, 1000);
 
         return () => { clearInterval(h) }
 
@@ -476,67 +491,17 @@ export default function Main(): React.JSX.Element {
 
     const latestSiteActiveStatus = useRef<boolean | undefined>(siteActiveStatus);
 
-    useEffect(() => {
-
-        if(!latestManualStop.current){
-
-            // Nieaktywny -> aktywny
-
-            if(!latestSiteActiveStatus.current && siteActiveStatus){
-
-                setSiteActiveDate(null);
-
-                const previousDate: Date | null = latestSiteActiveDate.current;
-
-                const currentDate: Date = new Date();
-
-                const previousDifference: number = latestDifference.current;
-
-                if(previousDate){
-
-                    const time1: number = previousDate.getTime();
-
-                    const time2: number = currentDate.getTime();
-
-                    const difference: number = (time2 - time1) / 1000;
-
-                    const seconds: number = Math.round(difference);
-
-                    if(seconds > previousDifference){
-
-                        setDifference(seconds);
-
-                        updateWorkTimes('update', seconds);
-
-                    }
-
-                }
-
-            }
-
-            // Aktywny -> nieaktywny
-
-            if(latestSiteActiveStatus.current && !siteActiveStatus){
-
-                setSiteActiveDate(new Date());
-
-            }
-
-        }
-
-        latestSiteActiveStatus.current = siteActiveStatus;
-
-    }, [siteActiveStatus, updateWorkTimes]);
-
     // Data ostatniej aktywności
 
-    const [siteActiveDate, setSiteActiveDate] = useState<Date | null>(null);
+    const [siteActiveDate, setSiteActiveDate] = useState<number | null>(null);
 
-    const latestSiteActiveDate = useRef<Date | null>(siteActiveDate);
+    const latestSiteActiveDate = useRef<number | null>(siteActiveDate);
 
     useEffect(() => {
 
         latestSiteActiveDate.current = siteActiveDate;
+
+        console.log(siteActiveDate)
 
     }, [siteActiveDate]);
 
@@ -776,7 +741,7 @@ export default function Main(): React.JSX.Element {
 
         const h: number = setInterval(() => {
 
-            console.log(new Date().toLocaleTimeString() + " total " + latestTotalWorkTime.current +  " job " + latestJobWorkTime.current + " difference " + latestDifference.current)
+            //console.log(new Date().toLocaleTimeString() + " total " + latestTotalWorkTime.current +  " job " + latestJobWorkTime.current + " difference " + latestDifference.current)
 
         }, 1000);
 
@@ -944,7 +909,7 @@ export default function Main(): React.JSX.Element {
 
         } else {
 
-            const timeout: number = dataLoadCount > 0 ? 1000 : 0;
+            const timeout: number = dataLoadCount > 0 ? 1500 : 0;
 
             setTimeout(() => { getData() }, timeout);
 
@@ -3100,7 +3065,7 @@ export default function Main(): React.JSX.Element {
 
                 let measurement_type: string = 'pomiar';
 
-                if(matching_object && matching_object.measurement){
+                if(matching_object && matching_object.measurement && matching_object.measurement.length > 0){
 
                     const i: number = matching_object.measurement.length -1;
 
@@ -3728,8 +3693,6 @@ export default function Main(): React.JSX.Element {
             return "user-top-panel-button finish-measurements-button";
 
     }, [measurementFormSummary, accuracy, uploadedFiles, activeJob, activeTrain, activeStation, mergedTrains]);
-
-    //console.log(mergedTrains)
 
     return (
         <div id="app-outer-container">

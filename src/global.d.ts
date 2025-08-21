@@ -16,8 +16,13 @@ declare type UserContextType = {
     isLocalhost: boolean;
 };
 
-
-
+declare type Data = Omit<Partial<User>, 'hour_rate' | 'total_work_time'> & {
+    hour_rate?: number | string | null;
+    total_work_time?: number | string | null;
+    message?: string;
+    token?: string;
+    code?: string;
+};
 
 // Użytkownik
 
