@@ -14,130 +14,6 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 
 export default function Main(): React.JSX.Element {
 
-    type Camera = {
-        camera_number: string;
-        station_id: string;
-        recording_date: string;
-    }
-
-    type CameraSlide = Camera & {
-        name: string;
-        url: string;
-    }
-
-    type Delay = {
-        recording_date: string;
-        station_id: string;
-        train_id: string;
-        delay: string;
-    }
-
-    type FTP = {
-        station_id: string;
-        recording_date: string;
-        disk: string;
-        path: string;
-    }
-
-    type ButtonStatus = {
-        ftp_host: boolean;
-        ftp_user: boolean;
-        ftp_password: boolean;
-    }
-
-    type JobFilters = {
-        job_station_name: string;
-        job_date: string;
-    }
-
-    type JobWithTrains = {
-        job: Job;
-        trains: TrainStop[][] | TrainStop[];
-    };
-
-    type Measurement = {
-        id: number;
-        personal_id: string;
-        job_number: number;
-        station_id: string;
-        train_id: string;
-        recording_date: string;
-        entered_1: number | null;
-        entered_2: number | null;
-        entered_3: number | null;
-        entered_4: number | null;
-        entered_5: number | null;
-        entered_6: number | null;
-        exited_1: number | null;
-        exited_2: number | null;
-        exited_3: number | null;
-        exited_4: number | null;
-        exited_5: number | null;
-        exited_6: number | null;
-        entered_sum: number;
-        exited_sum: number;
-        arrival_hour: string | null;
-        departure_hour: string | null;
-        accuracy: number;
-        type: string;
-        comments: string | null;
-        measurement_date: string;
-    }
-
-    type Photo = {
-        personal_id: string;
-        job_number: number;
-        recording_date: string;
-        station_id: string;
-        train_id: string;
-        filename: string;
-        upload_date: string;
-    }
-
-    type PhotoSlide = Photo & {
-        name: string;
-        url: string;
-    }
-
-
-
-    type Recording = {
-        station_id: string;
-        recording_date: string;
-    }
-
-    type Station = {
-        station_id: string;
-        name: string;
-        platforms: number | null;
-        edges: number | null;
-        comments: string | null;
-    }
-
-    
-
-    type TrainNumber = {
-        train_id: string;
-        train_number: string;
-        first_station: string;
-        last_station: string;
-        direction: number | null;
-        schedule_date: string | null;
-        comments: string | null;
-    }
-
-    type Response = {
-        cameras?: Camera[];
-        delays?: Delay[];
-        ftp?: FTP[];
-        jobs_trains?: JobWithTrains[];
-        measurements?: Measurement[];
-        photos?: Photo[];
-        recordings?: Recording[];
-        stations?: Station[];
-        train_numbers?: TrainNumber[];
-    }
-
     type Modal = {
         show: boolean;
         add_photo: boolean;
@@ -330,7 +206,7 @@ export default function Main(): React.JSX.Element {
 
         }
 
-        if(latestActiveJob.current && latestJobWorkTime.current){
+        if(latestActiveJob.current && latestJobWorkTime.current !== undefined){
 
             new_job_value = latestJobWorkTime.current + plus_value;
 
@@ -453,7 +329,7 @@ export default function Main(): React.JSX.Element {
 
         };
         
-    }, [updateWorkTimes]);   
+    }, [updateWorkTimes]);
 
     useEffect(() => {
 
@@ -490,6 +366,12 @@ export default function Main(): React.JSX.Element {
     const [siteActiveStatus, setSiteActiveStatus] = useState<boolean | undefined>(undefined);
 
     const latestSiteActiveStatus = useRef<boolean | undefined>(siteActiveStatus);
+
+    useEffect(() => {
+
+        latestSiteActiveStatus.current = siteActiveStatus;
+
+    }, [siteActiveStatus]);
 
     // Data ostatniej aktywności
 
@@ -545,6 +427,10 @@ export default function Main(): React.JSX.Element {
 
             setFormatedTotalTime(formatedTime);
 
+        } else {
+
+            setFormatedTotalTime("00:00");
+
         }
 
     }, [totalWorkTime]);
@@ -566,6 +452,10 @@ export default function Main(): React.JSX.Element {
             const formatedTime: string = formatTimeString(jobWorkTime);
 
             setFormatedJobTime(formatedTime);
+
+        } else {
+
+            setFormatedJobTime("00:00");
 
         }
 
@@ -737,18 +627,6 @@ export default function Main(): React.JSX.Element {
 
     }, [showTimeUpdateError]);
 
-    useEffect(() => {
-
-        const h: number = setInterval(() => {
-
-            //console.log(new Date().toLocaleTimeString() + " total " + latestTotalWorkTime.current +  " job " + latestJobWorkTime.current + " difference " + latestDifference.current)
-
-        }, 1000);
-
-        return () => { clearInterval(h) }
-
-    }, []);
-
     // Przełącznik menu
 
     const [appLayer, setAppLayer] = useState<number>(100);
@@ -815,7 +693,7 @@ export default function Main(): React.JSX.Element {
 
                 if(typeof response.data === 'object' || Array.isArray(response.data)){
 
-                    const data = response.data as Response;
+                    const data = response.data as APIResponse;
 
                     if(data.jobs_trains){
 
@@ -931,34 +809,6 @@ export default function Main(): React.JSX.Element {
 
     }
 
-    /*
-
-    useEffect(() => {
-
-        if(jobs.length > 0){ 
-
-            const uniqueDates: string[] = Array.from( new Set(jobs.map(obj => formatDate(obj.recording_date))) );
-
-            
-
-            uniqueDates.sort((a, b) => {
-
-                const [dA, mA, yA] = a.split("/").map(Number);
-
-                const [dB, mB, yB] = b.split("/").map(Number);
-
-                return new Date(yA, mA - 1, dA).getTime() - new Date(yB, mB - 1, dB).getTime();
-
-            });
-
-            setJobDates(uniqueDates)
-
-        }
-        
-    }, [jobs]);
-
-    */
-
     // Uzupełnianie zadań o nazwy stacji i numery pociągów
 
     const [updatedJobs, setUpdatedJobs] = useState<UpdatedJob[]>([]);
@@ -966,26 +816,6 @@ export default function Main(): React.JSX.Element {
     useEffect(() => {
 
         if(jobs.length > 0 && stations.length > 0 && trainNumbers.length > 0){
-
-            /*
-
-            const sorted_unique_stations = Array.from(
-
-                new Set( jobs.map(job => job.station_name).filter((name): name is string => Boolean(name)) )
-
-            ).sort((a, b) => a.localeCompare(b));
-
-            setJobStations(sorted_unique_stations);
-
-
-
-            const jobsWithStationName = jobs.filter(job => job.station_name);
-
-            const uniqueStationNames = [...new Set(jobsWithStationName.map(job => job.station_name))];
-
-            const sortedUniqueStationNames = uniqueStationNames.sort((a, b) => a.localeCompare(b));
-
-            */
 
             const updated_jobs: UpdatedJob[] = jobs.map(job => {
 
@@ -1039,40 +869,6 @@ export default function Main(): React.JSX.Element {
     useEffect(() => {
 
         if(trains.length > 0 && stations.length > 0 && trainNumbers.length > 0){
-
-            /*
-
-            const updated: Train[] = [...trains];
-
-            updated.forEach(train => {
-
-                const train_search: TrainNumber | undefined = trainNumbers.find(u => u.train_id === train.train_id);
-
-                if(train_search){
-
-                    train.train_number = train_search.train_number;
-
-                    const first_station: Station | undefined = stations.find(u => u.station_id === train_search.first_station);
-
-                    const last_station: Station | undefined = stations.find(u => u.station_id === train_search.last_station);
-
-                    if(first_station){
-
-                        train.first_station_name = first_station.name;
-
-                    }
-
-                    if(last_station){
-
-                        train.last_station_name = last_station.name;
-
-                    }
-
-                }
-
-            });
-
-            */
 
             const updated_trains: UpdatedTrain[] = trains.map(train => {
 
@@ -1161,7 +957,7 @@ export default function Main(): React.JSX.Element {
 
                     if(response.data.measurements && response.data.photos){
 
-                        const data = response.data as Response;
+                        const data = response.data as APIResponse;
 
                         mergeTrainData(data);
 
@@ -1177,7 +973,7 @@ export default function Main(): React.JSX.Element {
 
         }
 
-        function mergeTrainData(data: Response){
+        function mergeTrainData(data: APIResponse){
 
             const db_measurements: Measurement[] = data.measurements ?? [];
     
@@ -1188,26 +984,6 @@ export default function Main(): React.JSX.Element {
             if(updatedTrains.length > 0 && job && job.station_id){
 
                 // Pomiar stacji
-
-                /*
-    
-                const grouped_measurements = db_measurements.reduce <Record<string, Measurement>> ((acc, obj) => {
-
-                    const { id, train_id } = obj;
-
-                    if(!acc[train_id] || acc[train_id].id < id){
-
-                        acc[train_id] = obj;
-
-                    }
-
-                    return acc;
-
-                }, {} as Record<string, Measurement> );
-    
-                const unique_measurements = Object.values(grouped_measurements);
-
-                */
 
                 const unique_measurements: Measurement[] = [];
 
@@ -1224,24 +1000,6 @@ export default function Main(): React.JSX.Element {
                     }
 
                 });
-
-                /*
-
-                for(let i = db_measurements.length - 1; i >= 0; i--){
-
-                    const train_id: string = db_measurements[i].train_id;
-
-                    const exist: boolean = unique_measurements.some(obj => obj.train_id === train_id);
-
-                    if(!exist){
-
-                        unique_measurements.push(db_measurements[i]);
-
-                    }
-
-                }
-
-                */
 
                 const merged_trains: MergedTrain[] = updatedTrains.map(train => {
 
@@ -1278,26 +1036,6 @@ export default function Main(): React.JSX.Element {
                     photos: train_photos
                 }
 
-                /*
-    
-                const grouped_measurements = db_measurements.reduce((acc, obj) => {
-
-                    const { id, station_id } = obj;
-
-                    if (!acc[station_id] || acc[station_id].id < id) {
-
-                        acc[station_id] = obj;
-
-                    }
-
-                    return acc;
-
-                }, {});
-
-                const unique_measurements = Object.values(grouped_measurements);
-
-                */
-    
                 const unique_measurements: Measurement[] = [];
 
                 db_measurements.reverse().forEach(item => {
@@ -1327,18 +1065,6 @@ export default function Main(): React.JSX.Element {
                 setMergedTrains([merged_train]);
 
             }
-
-            /*
-                
-            const updated = newArrayWithMeasurements.map(train => {
-    
-                const trainPhotos = db_photos.filter(photo => photo.train_id === train.train_id);
-    
-                return { ...train, photos: trainPhotos };
-    
-            });
-
-            */
                 
         };
 
@@ -1398,34 +1124,6 @@ export default function Main(): React.JSX.Element {
             });
 
             setJobDates(unique_dates);
-
-            /*
-
-            setJobDates(filteredJobs.reduce((unique, obj) => {
-
-                const formattedDate = formatDate(obj.recording_date);
-
-                if (!unique.includes(formattedDate)) {
-
-                    unique.push(formattedDate);
-
-                }
-
-                return unique;
-
-            }, []).sort((a, b) => {
-
-                const [dayA, monthA, yearA] = a.split("/");
-                const [dayB, monthB, yearB] = b.split("/");
-
-                const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
-                const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
-
-                return dateA - dateB;
-
-            }));
-
-            */
 
             const jobs_with_station_name = filteredJobs.filter((job): job is UpdatedJob & { station_name: string } => Boolean(job.station_name));
 
@@ -1526,21 +1224,7 @@ export default function Main(): React.JSX.Element {
 
                     if(found_stop){
 
-                        //output.train_id = train_id;
-
-                        //output.stops = train;
-
                         const station_index = found_stop.stop_number;
-
-                        //output.station_index = station_index;
-
-                        //output.arrival_hour = found_stop.arrival_hour;
-
-                        //output.departure_hour = found_stop.departure_hour;
-
-                        //output.platform_number = found_stop.platform_number;
-
-                        //output.lane_number = found_stop.lane_number;
 
                         const delay: Delay[] = delays.filter(item => item.train_id === train_id && item.recording_date === rec_date);
 
@@ -2124,6 +1808,18 @@ export default function Main(): React.JSX.Element {
 
     }, [activeJob, cameras, ftp, mergedTrains, restoreMeasurements]);
 
+    useEffect(() => {
+
+        if(activeTrain?.train_id || activeStation){
+
+            const ele: HTMLElement | null = document.getElementById('active-train-station');
+
+            ele?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        }
+
+    }, [activeTrain, activeStation]);
+
     const [measurementFormData, setMeasurementFormData] = useState<MeasurementFormData>({});
 
     function measurementFormChange(event: React.ChangeEvent<HTMLInputElement>){
@@ -2544,27 +2240,10 @@ export default function Main(): React.JSX.Element {
 
         setModal(closed);
 
-        /*
-
-        setModal({
-            show: false, 
-            add_photo: false,
-            preview_photo: false,
-            show_photo: false,
-            cameras_photos: false,
-            ftp_info: false,
-            info: false,
-            time: false,
-            error: false
-        });
-
-        */
-
         //setUploadedFiles([]);
         //setUploadedPreviews([]);
         //setActivePreview(null);
         //setActiveUpload(false);
-
 
         // Podgląd zdjęć
 
@@ -3664,35 +3343,49 @@ export default function Main(): React.JSX.Element {
 
     const buttonClassName = useMemo(() => {
 
-        if((measurementFormSummary.entered_sum === '' && measurementFormSummary.exited_sum === '' && accuracy === '') || !activeJob){
+        if(measurementFormSummary.entered_sum === '' || measurementFormSummary.exited_sum === '' || accuracy === ''){
 
             return "user-top-panel-button finish-measurements-button-disabled";
 
         }
 
-        let matching_object: MergedTrain | TrainStop | undefined;
+        if(activeJob?.station_id){
 
-        if(activeJob.station_id){
+            const matching_object: MergedTrain | undefined = mergedTrains.find(train => train.train_id === activeTrain?.train_id);
 
-            matching_object = mergedTrains.find(train => train.train_id === activeTrain?.train_id);
+            if((uploadedFiles.length === 0) && (!matching_object || matching_object.measurement?.length === 0)){
+
+                return "user-top-panel-button finish-measurements-button-disabled";
+
+            }
+
+        }
+      
+        return "user-top-panel-button finish-measurements-button";
+
+    }, [measurementFormSummary, accuracy, uploadedFiles, activeJob, activeTrain, mergedTrains]);
+
+    // Wyliczanie ukończonych etapów
+
+    const countCompletedStages = () => {
+
+        let filtered: MergedTrain[] | TrainStop[] = [];
+
+        if(activeJob?.station_id){
+
+            filtered = mergedTrains.filter(item => item.measurement && item.measurement?.length > 0);
 
         }
 
-        if(activeJob.train_id){
+        if(activeJob?.train_id && mergedTrains.length === 1){
 
-            matching_object = mergedTrains[0]?.stops.find(station => station.station_id === activeStation);
-
-        }
-
-        if((uploadedFiles.length === 0) && (!matching_object || matching_object.measurement?.length === 0)){
-
-            return "user-top-panel-button finish-measurements-button-disabled";
+            filtered = mergedTrains[0].stops.filter(train_stop => train_stop.measurement && train_stop.measurement?.length > 0);
 
         }
 
-            return "user-top-panel-button finish-measurements-button";
+        return filtered.length;
 
-    }, [measurementFormSummary, accuracy, uploadedFiles, activeJob, activeTrain, activeStation, mergedTrains]);
+    }
 
     return (
         <div id="app-outer-container">
@@ -3828,9 +3521,10 @@ export default function Main(): React.JSX.Element {
                             <div className="job-working-top-inner-wrapper">
                                 <p className="job-working-top-text">Data pomiarów: <span className="job-info-important">{formatDate(activeJob.recording_date)}</span></p>
                                 {activeJob.station_name && <p className="job-working-top-text">Badany punkt: <span className="job-info-important">{activeJob.station_name}</span></p>}
-                                {activeJob.station_name && activeJob.stages !== null && activeJob.stages !== undefined && <p className="job-working-top-text">Liczba pociągów: <span className="job-info-important">{activeJob.stages}</span></p>}
-                                {activeJob.train_number && <p className="job-working-top-text">Numer pociągu: <span className="job-info-important">{activeJob.train_number}</span></p>}
-                                {activeJob.first_station_name && activeJob.last_station_name && <p className="job-working-top-text">Relacja: <span className="job-info-important">{activeJob.first_station_name + " - " + activeJob.last_station_name}</span></p>}
+                                {activeJob.train_number && <p className="job-working-top-text">Badany pociąg: <span className="job-info-important">{activeJob.train_number}<br></br>{activeJob.first_station_name + " - " + activeJob.last_station_name}</span></p>}
+                                <p className="job-working-top-text">Sprawdzono: <span className="job-info-important">{countCompletedStages()}/{activeJob.stages}</span></p>
+                                
+                                {/*activeJob.first_station_name && activeJob.last_station_name && <p className="job-working-top-text">Relacja: <span className="job-info-important">{activeJob.first_station_name + " - " + activeJob.last_station_name}</span></p>*/}
                             </div>
                             <div className="job-working-top-2-inner-wrapper">
                                 {cameraSlides.length > 0 && <button className="job-additional-button" onClick={() => setModal({...modal, show: true, cameras_photos: true})}>Podgląd kamer</button>}
@@ -3941,7 +3635,7 @@ export default function Main(): React.JSX.Element {
                             </div>
                         }
                         {(activeTrain?.train_id || activeStation) && 
-                            <div className="job-working-bottom-outer-wrapper">
+                            <div id="active-train-station" className="job-working-bottom-outer-wrapper">
                                 <div className="measurement-title">
                                     {activeTrain?.train_id && <h2 className="section-title">Pociąg {activeTrain.train_number}<br></br>{activeTrain.first_station_name} - {activeTrain.last_station_name}</h2>}
                                     {activeStation && <h2 className="section-title">Stacja {getStationName()}</h2>}

@@ -36,6 +36,145 @@ declare type User = {
     total_work_time?: number | null;
 }
 
+
+
+
+declare type Camera = {
+    camera_number: string;
+    station_id: string;
+    recording_date: string;
+}
+
+declare type CameraSlide = Camera & {
+    name: string;
+    url: string;
+}
+
+declare type Delay = {
+    recording_date: string;
+    station_id: string;
+    train_id: string;
+    delay: string;
+}
+
+declare type FTP = {
+    station_id: string;
+    recording_date: string;
+    disk: string;
+    path: string;
+}
+
+declare type ButtonStatus = {
+    ftp_host: boolean;
+    ftp_user: boolean;
+    ftp_password: boolean;
+}
+
+declare type JobFilters = {
+    job_station_name: string;
+    job_date: string;
+}
+
+declare type JobWithTrains = {
+    job: Job;
+    trains: TrainStop[][] | TrainStop[];
+};
+
+declare type Measurement = {
+    id: number;
+    personal_id: string;
+    job_number: number;
+    station_id: string;
+    train_id: string;
+    recording_date: string;
+    entered_1: number | null;
+    entered_2: number | null;
+    entered_3: number | null;
+    entered_4: number | null;
+    entered_5: number | null;
+    entered_6: number | null;
+    exited_1: number | null;
+    exited_2: number | null;
+    exited_3: number | null;
+    exited_4: number | null;
+    exited_5: number | null;
+    exited_6: number | null;
+    entered_sum: number;
+    exited_sum: number;
+    arrival_hour: string | null;
+    departure_hour: string | null;
+    accuracy: number;
+    type: string;
+    comments: string | null;
+    measurement_date: string;
+}
+
+declare type Photo = {
+    personal_id: string;
+    job_number: number;
+    recording_date: string;
+    station_id: string;
+    train_id: string;
+    filename: string;
+    upload_date: string;
+}
+
+declare type PhotoSlide = Photo & {
+    name: string;
+    url: string;
+}
+
+
+
+declare type Recording = {
+    station_id: string;
+    recording_date: string;
+}
+
+declare type Station = {
+    station_id: string;
+    name: string;
+    platforms: number | null;
+    edges: number | null;
+    comments: string | null;
+}
+
+    
+
+declare type TrainNumber = {
+    train_id: string;
+    train_number: string;
+    first_station: string;
+    last_station: string;
+    direction: number | null;
+    schedule_date: string | null;
+    comments: string | null;
+}
+
+declare type APIResponse = {
+    cameras?: Camera[];
+    delays?: Delay[];
+    ftp?: FTP[];
+    jobs_trains?: JobWithTrains[];
+    measurements?: Measurement[];
+    photos?: Photo[];
+    recordings?: Recording[];
+    stations?: Station[];
+    train_numbers?: TrainNumber[];
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 declare type Job = {
     comments: string | null;
     completed_stages: number | null;
