@@ -71,7 +71,7 @@ export default function Login(): React.JSX.Element {
 
             }
 
-            const data: Data = await loginUser(formFields);
+            const data: UserData = await loginUser(formFields);
 
             if(data.token){
 

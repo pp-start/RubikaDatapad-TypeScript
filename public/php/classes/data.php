@@ -2,7 +2,7 @@
 
 include 'connection.php';
 
-class Data{
+class Data {
 
     use Connection;
 
@@ -193,8 +193,6 @@ class Data{
         $cameras = $this->getDataFromTable('cameras');
 
         $response = array();
-
-        $response['success'] = true;
 
         $response['jobs'] = !empty($jobs) ? $jobs : [];
 
@@ -485,8 +483,6 @@ class Data{
         $users = $this->getUserDataFromTable();
 
         $response = array();
-
-        $response['success'] = true;
 
         $response['trains'] = !empty($trains) ? array_values($this->groupTrains($trains)) : [];
 
@@ -2010,7 +2006,7 @@ class Data{
 
         }
 
-        return null;
+        return "nie znaleziono";
 
     }
 
@@ -2026,7 +2022,7 @@ class Data{
 
         }
 
-        return null;
+        return "nie znaleziono";
 
     }
     

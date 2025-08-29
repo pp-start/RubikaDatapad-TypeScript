@@ -2,7 +2,7 @@
 
 include 'connection.php';
 
-class Job{
+class Job {
 
     use Connection;
 
@@ -176,21 +176,6 @@ class Job{
 
     }
 
-    public function checkStationMatch($array, $station_id, $recording_date){
-
-        foreach($array as $element){
-
-            if($element['station_id'] === $station_id && $element['recording_date'] === $recording_date){
-
-                return true;
-
-            }
-
-        }
-
-        return false;
-    }
-
     public function insert($object){
 
         if(!$this->checkConnection()){
@@ -223,6 +208,23 @@ class Job{
 
         echo json_encode($response);
         
+    }
+
+    /*
+
+    public function checkStationMatch($array, $station_id, $recording_date){
+
+        foreach($array as $element){
+
+            if($element['station_id'] === $station_id && $element['recording_date'] === $recording_date){
+
+                return true;
+
+            }
+
+        }
+
+        return false;
     }
 
     public function filterTrains($trains, $station_id, $start_hour, $end_hour){
@@ -274,6 +276,8 @@ class Job{
         return $output;
 
     }
+
+    */
 
 }
 

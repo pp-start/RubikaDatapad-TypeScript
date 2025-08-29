@@ -59,7 +59,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     // Szyfrowanie
 
-    const encrypt = async (data: Data): Promise<Data> => {
+    const encrypt = async (data: UserData): Promise<UserData> => {
 
         const encrypted_username: string = data.username ? await encryptString(data.username) : "";
 
@@ -179,7 +179,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     }, []);
 
-    const decrypt = useCallback(async (data: Data): Promise<Data> => {
+    const decrypt = useCallback(async (data: UserData): Promise<UserData> => {
 
         const decrypted_username: string = data.username ? await decryptString(data.username) : "";
 
@@ -220,11 +220,11 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     // Logowanie - wysyłanie formularza
 
-    const loginUser = async (formFields: FormFields): Promise<Data> => {
+    const loginUser = async (formFields: FormFields): Promise<UserData> => {
 
         try {
 
-            const { data } : { data: Data } = await Axios.post('classes/login.php', { formFields });
+            const { data } : { data: UserData } = await Axios.post('classes/login.php', { formFields });
 
             if(data.token){
 
@@ -234,7 +234,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
                 const code: string = user_code + "-" + window.navigator.hardwareConcurrency + "-" + window.navigator.maxTouchPoints;
 
-                const updated_data: Data = {
+                const updated_data: UserData = {
                     ...data,
                     code: code
                 }
@@ -259,9 +259,9 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     // Wpisywanie użytkownika do lokalnej bazy danych
 
-    const handleUser = async(data: Data): Promise<void> => {
+    const handleUser = async(data: UserData): Promise<void> => {
 
-        const encrypted: Data = await encrypt(data);
+        const encrypted: UserData = await encrypt(data);
 
         if(userDB.length === 0){
 
@@ -279,7 +279,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
     // Pobieranie użytkownika z lokalnej bazy danych
 
-    const [userDB, setUserDB] = useState<Data[]>([]);
+    const [userDB, setUserDB] = useState<UserData[]>([]);
 
     useEffect(() => {
 
@@ -305,7 +305,7 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
         if(userDB.length > 0){
 
-            const data: Data = userDB[0];
+            const data: UserData = userDB[0];
 
             Axios.options('auth/getUser.php', { timeout: 1500 }).then(function(){
 
@@ -321,9 +321,9 @@ export const UserContextProvider = ( { children } : { children: ReactNode } ) =>
 
         }
 
-        const logOnline = async (data: Data): Promise<void> => {
+        const logOnline = async (data: UserData): Promise<void> => {
 
-            const decrypted_data: Data = await decrypt(data);
+            const decrypted_data: UserData = await decrypt(data);
 
             const stored_code: string | null = localStorage.getItem("code");
 

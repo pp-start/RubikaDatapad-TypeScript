@@ -26,9 +26,7 @@ export default function Main(): React.JSX.Element {
         error: boolean;
     }
 
-    type ModalSlide = {
-        src: string;
-    }
+    
 
     type MeasurementSummary = MeasurementFormSummary & {
         entered_exited: MeasurementFormData;
@@ -49,7 +47,7 @@ export default function Main(): React.JSX.Element {
         reported_minutes: string;
     };
 
-    type PassengerType = 'entered' | 'exited';
+    
 
     type TimeType = 'arrival' | 'departure';
 
@@ -1232,11 +1230,11 @@ export default function Main(): React.JSX.Element {
 
                         if(delay.length > 0){
 
-                            const exact: Delay[] = delay.filter(item => item.station_id === station_id);
+                            const exact: Delay | undefined = delay.find(item => item.station_id === station_id);
 
-                            if(exact.length > 0){
+                            if(exact){
 
-                                delay_text = 'opóźniony ' + exact[0].delay + ' min.';
+                                delay_text = 'opóźniony ' + exact.delay + ' min.';
 
                             } else {
 
@@ -1259,10 +1257,6 @@ export default function Main(): React.JSX.Element {
                                 }
 
                             }
-
-                        } else {
-
-                            delay_text = null;
 
                         }
 
@@ -1822,7 +1816,7 @@ export default function Main(): React.JSX.Element {
 
     const [measurementFormData, setMeasurementFormData] = useState<MeasurementFormData>({});
 
-    function measurementFormChange(event: React.ChangeEvent<HTMLInputElement>){
+    function measurementFormChange(event: React.ChangeEvent<HTMLInputElement>): void {
 
         const value: string = event.target.value;
 
@@ -1901,10 +1895,6 @@ export default function Main(): React.JSX.Element {
         });
 
     };
-
-    
-
-    
 
     function manualTimeChange(handle: string, type: string, field: TimeType, time_object: Time | null){
 

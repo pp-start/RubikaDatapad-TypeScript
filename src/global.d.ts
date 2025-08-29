@@ -16,7 +16,7 @@ declare type UserContextType = {
     isLocalhost: boolean;
 };
 
-declare type Data = Omit<Partial<User>, 'hour_rate' | 'total_work_time'> & {
+declare type UserData = Omit<Partial<User>, 'hour_rate' | 'total_work_time'> & {
     hour_rate?: number | string | null;
     total_work_time?: number | string | null;
     message?: string;
@@ -37,7 +37,11 @@ declare type User = {
 }
 
 
+declare type ModalSlide = {
+    src: string;
+}
 
+declare type PassengerType = 'entered' | 'exited';
 
 declare type Camera = {
     camera_number: string;
@@ -107,6 +111,8 @@ declare type Measurement = {
     type: string;
     comments: string | null;
     measurement_date: string;
+    full_name?: string; // Dopisywane w admin
+    job_type?: string; // Dopisywane w admin
 }
 
 declare type Photo = {
@@ -151,7 +157,27 @@ declare type TrainNumber = {
     comments: string | null;
 }
 
+declare type Users = {
+    username: string;
+    status: string;
+    role: string;
+    personal_id: string;
+    email: string | null;
+    phone_number: string | null;
+    first_name: string | null;
+    surname: string | null;
+    rating: number | null;
+    hour_rate: number | null;
+    total_work_time: number | null;
+    total_work_hours: string | null;
+    comment: string | null;
+    last_update: string;
+    created_on: string;
+}
+
 declare type APIResponse = {
+
+    // Użytkownicy i admin:
     cameras?: Camera[];
     delays?: Delay[];
     ftp?: FTP[];
@@ -161,9 +187,19 @@ declare type APIResponse = {
     recordings?: Recording[];
     stations?: Station[];
     train_numbers?: TrainNumber[];
+
+    // Tylko admin:
+    jobs?: Job[];
+    trains?: TrainStop[][];
+    users?: Users[];
+    users_with_jobs?: UserWithJobs[];
 }
 
-
+declare type UserWithJobs = {
+    personal_id: string;
+    full_name: string;
+    surname: string;
+}
 
 
 
@@ -188,8 +224,8 @@ declare type Job = {
     stages: number;
     start_hour: string | null;
     station_id: string | null;
-    station_name: string | null; // uzupełniana PHP
-    status: string | null;
+    station_name?: string | null; // uzupełniana PHP
+    status: string;
     train_id: string | null;
     train_list: string | null;
     type: string;
@@ -223,6 +259,7 @@ type UpdatedTrain = Train & {
 type MergedTrain = UpdatedTrain & {
     measurement?: Measurement[]; // uzupełniana
     photos: Photo[]; // uzupełniana
+    relation?: string;
 }
 
 type TrainStop = {
@@ -237,6 +274,7 @@ type TrainStop = {
     delay?: string | null; // uzupełniana
     station_name?: string | undefined; // uzupełniana PHP
     measurement?: Measurement[]; // uzupełniana
+    recording_dates?: string[];
 }
 
 type MeasurementFormData = {
